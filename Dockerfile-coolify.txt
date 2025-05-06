@@ -1,0 +1,32 @@
+FROM node:20.18.0 AS base
+
+WORKDIR /app
+
+# Install pnpm explicitly (bypassing Corepack)
+RUN npm install -g pnpm@8.6.0 && \
+    npm install -g wrangler
+# Ensure dependencies are copied before installing
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install --force
+
+# Copy source code and scripts
+COPY . .
+
+# Ensure bindings.sh has correct permissions and LF line endings
+RUN tr -d '\r' < bindings.sh > bindings.tmp && \
+    mv bindings.tmp bindings.sh && \
+    chmod +x bindings.sh
+
+# Build the application
+RUN pnpm run build
+
+# Expose application port
+EXPOSE 5173
+
+# Set environment variables
+ENV NODE_ENV=production \
+    RUNNING_IN_DOCKER=true
+
+# Default command to start the app
+CMD ["pnpm", "run", "dockerstart"]
