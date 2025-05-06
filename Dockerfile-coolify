@@ -19,6 +19,9 @@ RUN tr -d '\r' < bindings.sh > bindings.tmp && \
     mv bindings.tmp bindings.sh && \
     chmod +x bindings.sh
 
+# Give Node up to 4 GB of heap so pnpm run build won't OOM
+ENV NODE_OPTIONS="--max_old_space_size=4096"
+
 # Build the application
 RUN pnpm run build
 
